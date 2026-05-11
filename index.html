@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>청소당번 뽑기 / Дежурные по уборке</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gaegu:wght@400;700&family=Jua&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fef9e7;
+    --bg-2: #fff5d1;
+    --primary: #ff6b6b;
+    --primary-dark: #ee5a52;
+    --secondary: #4ecdc4;
+    --secondary-dark: #3aa89f;
+    --accent: #ffd93d;
+    --accent-2: #6bcf7f;
+    --ink: #2d3436;
+    --ink-soft: #636e72;
+    --card: #ffffff;
+    --shadow: 0 8px 0 rgba(45, 52, 54, 0.15);
+    --shadow-lg: 0 12px 0 rgba(45, 52, 54, 0.2);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Jua', 'Gaegu', sans-serif;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 10% 20%, rgba(255, 217, 61, 0.25) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(78, 205, 196, 0.2) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(255, 107, 107, 0.08) 0%, transparent 50%);
+    min-height: 100vh;
+    color: var(--ink);
+    padding: 20px;
+    overflow-x: hidden;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  header {
+    text-align: center;
+    padding: 30px 20px 20px;
+    position: relative;
+  }
+
+  header::before {
+    content: "🧹";
+    position: absolute;
+    left: 10%;
+    top: 10px;
+    font-size: 48px;
+    transform: rotate(-15deg);
+    animation: float 3s ease-in-out infinite;
+  }
+
+  header::after {
+    content: "✨";
+    position: absolute;
+    right: 10%;
+    top: 20px;
+    font-size: 40px;
+    animation: float 3s ease-in-out infinite 1.5s;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(-15deg); }
+    50% { transform: translateY(-15px) rotate(-5deg); }
+  }
+
+  h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(36px, 6vw, 56px);
+    color: var(--ink);
+    letter-spacing: -1px;
+    line-height: 1.1;
+    text-shadow: 4px 4px 0 var(--accent);
+  }
+
+  .subtitle {
+    font-family: 'Jua', sans-serif;
+    font-size: clamp(18px, 2.5vw, 24px);
+    color: var(--primary);
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 28px 24px;
+    margin: 24px 0;
+    box-shadow: var(--shadow);
+    border: 4px solid var(--ink);
+  }
+
+  .section-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 3px dashed var(--accent);
+  }
+
+  .section-title h2 {
+    font-family: 'Jua', sans-serif;
+    font-size: clamp(22px, 3vw, 28px);
+    color: var(--ink);
+  }
+
+  .section-title .ru {
+    font-family: 'Jua', sans-serif;
+    font-size: clamp(15px, 2vw, 18px);
+    color: var(--ink-soft);
+  }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .mini-btn {
+    font-family: 'Jua', sans-serif;
+    font-size: 15px;
+    padding: 8px 16px;
+    border: 3px solid var(--ink);
+    border-radius: 999px;
+    background: var(--bg-2);
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 0 4px 0 var(--ink);
+    color: var(--ink);
+  }
+
+  .mini-btn:hover { background: var(--accent); }
+  .mini-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 var(--ink);
+  }
+
+  .number-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+
+  .num-box {
+    position: relative;
+    aspect-ratio: 1;
+    cursor: pointer;
+  }
+
+  .num-box input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  .num-label {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: var(--bg-2);
+    border: 3px solid var(--ink);
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(20px, 3.5vw, 28px);
+    color: var(--ink);
+    transition: all 0.15s;
+    box-shadow: 0 4px 0 var(--ink);
+    user-select: none;
+  }
+
+  .num-box input:checked + .num-label {
+    background: var(--secondary);
+    color: white;
+  }
+
+  .num-box input:not(:checked) + .num-label {
+    background: #e8e8e8;
+    color: #999;
+    text-decoration: line-through;
+    text-decoration-thickness: 3px;
+    opacity: 0.6;
+  }
+
+  .num-box:hover .num-label {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--ink);
+  }
+
+  .num-box:active .num-label {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 var(--ink);
+  }
+
+  .draw-btn-wrap {
+    text-align: center;
+    margin: 30px 0;
+  }
+
+  .draw-btn {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(28px, 4vw, 36px);
+    padding: 20px 50px;
+    background: var(--primary);
+    color: white;
+    border: 4px solid var(--ink);
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.15s;
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+
+  .draw-btn .ru {
+    display: block;
+    font-family: 'Jua', sans-serif;
+    font-size: clamp(14px, 1.8vw, 18px);
+    margin-top: 6px;
+    opacity: 0.95;
+    letter-spacing: 0;
+  }
+
+  .draw-btn:hover:not(:disabled) {
+    background: var(--primary-dark);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 0 rgba(45, 52, 54, 0.2);
+  }
+
+  .draw-btn:active:not(:disabled) {
+    transform: translateY(8px);
+    box-shadow: 0 4px 0 rgba(45, 52, 54, 0.2);
+  }
+
+  .draw-btn:disabled {
+    background: #b2bec3;
+    cursor: not-allowed;
+    box-shadow: var(--shadow);
+  }
+
+  .slots {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .slot {
+    aspect-ratio: 3/4;
+    background: linear-gradient(180deg, var(--bg-2) 0%, white 50%, var(--bg-2) 100%);
+    border: 4px solid var(--ink);
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--shadow);
+  }
+
+  .slot::before, .slot::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    height: 25%;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .slot::before {
+    top: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.85) 0%, transparent 100%);
+  }
+
+  .slot::after {
+    bottom: 0;
+    background: linear-gradient(0deg, rgba(255,255,255,0.85) 0%, transparent 100%);
+  }
+
+  .slot-reel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.05s linear;
+  }
+
+  .slot-num {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(36px, 7vw, 60px);
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+
+  .slot.finished {
+    background: var(--accent);
+    animation: pop 0.5s ease-out;
+  }
+
+  .slot.finished .slot-num {
+    color: var(--ink);
+  }
+
+  @keyframes pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+
+  .result-label {
+    text-align: center;
+    margin-top: 24px;
+    font-family: 'Jua', sans-serif;
+    font-size: 20px;
+    color: var(--ink-soft);
+    min-height: 30px;
+  }
+
+  .result-label.show {
+    color: var(--primary);
+    font-size: 22px;
+  }
+
+  .count-info {
+    text-align: center;
+    margin-top: 12px;
+    font-family: 'Jua', sans-serif;
+    font-size: 16px;
+    color: var(--ink-soft);
+  }
+
+  .warning {
+    background: #ffe8e8;
+    border: 3px solid var(--primary);
+    border-radius: 14px;
+    padding: 12px;
+    text-align: center;
+    color: var(--primary-dark);
+    font-family: 'Jua', sans-serif;
+    font-size: 16px;
+    margin-top: 12px;
+    display: none;
+  }
+
+  .warning.show { display: block; }
+
+  @media (max-width: 500px) {
+    body { padding: 12px; }
+    .card { padding: 20px 16px; border-radius: 18px; }
+    .number-grid { gap: 6px; }
+    .num-label { border-radius: 12px; }
+    .slots { gap: 6px; }
+    header::before, header::after { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>청소당번 뽑기</h1>
+    <div class="subtitle">Дежурные по уборке</div>
+  </header>
+
+  <div class="card">
+    <div class="section-title">
+      <h2>오늘의 결과 <span class="ru" style="font-size:0.7em">/ Результат</span></h2>
+    </div>
+    <div class="slots" id="slots">
+      <div class="slot"><div class="slot-reel"><div class="slot-num">?</div></div></div>
+      <div class="slot"><div class="slot-reel"><div class="slot-num">?</div></div></div>
+      <div class="slot"><div class="slot-reel"><div class="slot-num">?</div></div></div>
+      <div class="slot"><div class="slot-reel"><div class="slot-num">?</div></div></div>
+      <div class="slot"><div class="slot-reel"><div class="slot-num">?</div></div></div>
+    </div>
+    <div class="result-label" id="resultLabel">버튼을 눌러 시작하세요 / Нажмите кнопку</div>
+  </div>
+
+  <div class="draw-btn-wrap">
+    <button class="draw-btn" id="drawBtn">
+      뽑기 시작!
+      <span class="ru">Начать жеребьёвку</span>
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="section-title">
+      <h2>출석 번호 선택</h2>
+      <span class="ru">Выбор номеров</span>
+    </div>
+    <div class="controls">
+      <button class="mini-btn" id="selectAll">전체 선택 / Все</button>
+      <button class="mini-btn" id="deselectAll">전체 해제 / Сбросить</button>
+    </div>
+    <div class="number-grid" id="numberGrid"></div>
+    <div class="count-info" id="countInfo">선택됨 / Выбрано: 25명</div>
+    <div class="warning" id="warning">
+      ⚠️ 최소 5명 이상 선택해야 해요! / Нужно минимум 5 учеников!
+    </div>
+  </div>
+</div>
+
+<script>
+  const TOTAL = 25;
+  const PICK = 5;
+  const grid = document.getElementById('numberGrid');
+  const countInfo = document.getElementById('countInfo');
+  const warning = document.getElementById('warning');
+  const drawBtn = document.getElementById('drawBtn');
+  const slotsContainer = document.getElementById('slots');
+  const resultLabel = document.getElementById('resultLabel');
+
+  // 번호 체크박스 생성
+  for (let i = 1; i <= TOTAL; i++) {
+    const box = document.createElement('label');
+    box.className = 'num-box';
+    box.innerHTML = `
+      <input type="checkbox" value="${i}" checked>
+      <span class="num-label">${i}</span>
+    `;
+    grid.appendChild(box);
+  }
+
+  const checkboxes = () => Array.from(grid.querySelectorAll('input[type=checkbox]'));
+  const getSelected = () => checkboxes().filter(c => c.checked).map(c => parseInt(c.value));
+
+  function updateCount() {
+    const n = getSelected().length;
+    countInfo.textContent = `선택됨 / Выбрано: ${n}명`;
+    if (n < PICK) {
+      warning.classList.add('show');
+      drawBtn.disabled = true;
+    } else {
+      warning.classList.remove('show');
+      drawBtn.disabled = false;
+    }
+  }
+
+  grid.addEventListener('change', updateCount);
+
+  document.getElementById('selectAll').addEventListener('click', () => {
+    checkboxes().forEach(c => c.checked = true);
+    updateCount();
+  });
+  document.getElementById('deselectAll').addEventListener('click', () => {
+    checkboxes().forEach(c => c.checked = false);
+    updateCount();
+  });
+
+  // 슬롯머신 추첨
+  let isDrawing = false;
+
+  drawBtn.addEventListener('click', async () => {
+    if (isDrawing) return;
+    const pool = getSelected();
+    if (pool.length < PICK) return;
+
+    isDrawing = true;
+    drawBtn.disabled = true;
+    resultLabel.classList.remove('show');
+    resultLabel.textContent = '뽑는 중... / Выбираем...';
+
+    // 5명 무작위 선정
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+    const picks = shuffled.slice(0, PICK).sort((a, b) => a - b);
+
+    // 슬롯 초기화
+    const slots = slotsContainer.querySelectorAll('.slot');
+    slots.forEach(s => {
+      s.classList.remove('finished');
+      const reel = s.querySelector('.slot-reel');
+      reel.innerHTML = '<div class="slot-num">?</div>';
+      reel.style.transform = 'translateY(0)';
+    });
+
+    // 각 슬롯마다 슬롯머신 효과
+    const promises = [...slots].map((slot, idx) => spinSlot(slot, picks[idx], idx));
+    await Promise.all(promises);
+
+    resultLabel.textContent = `오늘의 청소당번: ${picks.join(', ')}번 / Дежурные сегодня`;
+    resultLabel.classList.add('show');
+    drawBtn.disabled = false;
+    drawBtn.innerHTML = '다시 뽑기! <span class="ru">Ещё раз</span>';
+    isDrawing = false;
+  });
+
+  function spinSlot(slot, finalNum, idx) {
+    return new Promise(resolve => {
+      const reel = slot.querySelector('.slot-reel');
+      const slotHeight = slot.offsetHeight;
+
+      // 릴 생성: 무작위 숫자들 + 마지막에 최종 숫자
+      const reelNumbers = [];
+      const cycles = 20 + idx * 8; // 슬롯마다 다른 속도로 멈춤
+      for (let i = 0; i < cycles; i++) {
+        reelNumbers.push(Math.floor(Math.random() * TOTAL) + 1);
+      }
+      reelNumbers.push(finalNum);
+
+      reel.innerHTML = reelNumbers.map(n =>
+        `<div class="slot-num" style="height:${slotHeight}px">${n}</div>`
+      ).join('');
+
+      // 애니메이션: ease-out으로 점점 느려지면서 정지
+      const duration = 1500 + idx * 400;
+      const finalY = -(reelNumbers.length - 1) * slotHeight;
+
+      reel.style.transition = `transform ${duration}ms cubic-bezier(0.15, 0.45, 0.25, 1)`;
+      // 다음 프레임에 시작
+      requestAnimationFrame(() => {
+        reel.style.transform = `translateY(${finalY}px)`;
+      });
+
+      setTimeout(() => {
+        slot.classList.add('finished');
+        resolve();
+      }, duration);
+    });
+  }
+
+  updateCount();
+</script>
+
+</body>
+</html>
